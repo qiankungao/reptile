@@ -6,7 +6,8 @@ import (
 )
 
 const (
-	url = "https://www.amazon.com/-/zh/product-reviews/B086168Y25/ref=cm_cr_arp_d_paging_btm_next_%d?ie=UTF8&reviewerType=all_reviews&pageNumber=%d"
+	url     = "https://www.amazon.com/-/zh/product-reviews/B086168Y25/ref=cm_cr_arp_d_paging_btm_next_%d?ie=UTF8&reviewerType=all_reviews&pageNumber=%d"
+	urlMain = "https://www.amazon.com/"
 )
 
 type Comment struct {
@@ -24,6 +25,22 @@ type Comment struct {
 }
 
 func main() {
+	//aok-relative
+	c := colly.NewCollector(
+		//
+		//colly.AllowedDomains(urlMain),
+	)
+	c.OnHTML(".aok-relative", func(e *colly.HTMLElement) {
+		//a-cardui-footer
+		//a-link-normal see-more truncate-1line
+		href := e.ChildAttr("div.a-cardui-footer > a", "href")
+		fmt.Println("href:", href)
+	})
+	c.Visit(urlMain)
+}
+
+//抓取评论
+func GetComment() {
 	c := colly.NewCollector(
 		//
 		colly.MaxDepth(1),
@@ -46,7 +63,7 @@ func main() {
 		comment.Help = e.ChildText("span.cr-vote-text")
 		comments = append(comments, comment)
 	})
-	for i := 1; i <=25; i++ {
+	for i := 1; i <= 25; i++ {
 		c.Visit(fmt.Sprintf(url, i, i))
 	}
 	for _, v := range comments {
